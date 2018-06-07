@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="bg">
+        <!-- <div class="jumbotron"> -->
+                <br><br>
+                
+            <h1 class="text-center">
+                Chat Application
+
+            </h1>
+            <h3 class="text-center">Socket.io with MongoDB</h3>
+        <!-- </div> -->
+    <!-- </div> -->
+<br><br><br>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 offset-md-3 col sm 12">
+
+
+                    <div id="status"></div>
+                    <div id="chat">
+
+                        <input type="text" id="name" class="form-control" placeholder="Enter Name">
+                        <br>
+                        <div class="card">
+                            <div class="card-block" id="message">
+
+                            </div>
+                        </div>
+                        <br>
+                        <textarea id="textarea" onfocus="this.value=''" id="textarea" class="form-control" placeholder="Enter Message here...."></textarea>
+                    </div>
+                    <br>
+                <center>    <button id="clear" class="btn btn-danger center">Clear Chats</button></center>
+                </div>
+
+            </div>
+        </div>
+        <style>
+            body,
+            html {
+                height: 100%;
+            }
+
+            .bg {
+                /* The image used */
+                background-image: url("nature.jpg");
+
+                /* Full height */
+                height: 100%;
+
+                /* Center and scale the image nicely */
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+
+            #message {
+                height: 300px;
+
+            }
+
+            h1 {
+                color: brown;
+                font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+                font-size: 55px;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.dev.js"></script>
+        <script>
+            (function () {
+                const element = (id) => document.getElementById(id);
+                const status = element('status');
+                const messages = element('message');
+                const name = element('name');
+                const textarea = element('textarea');
+                const clear = element('clear');
+                const statusdefault = status.textContent;
+                var setStatus = function (s) {
+                    // Set status
+                    status.textContent = s;
+
+                    if (s !== statusdefault) {
+                        var delay = setTimeout(function () {
+                            setStatus(statusDefault);
+                        }, 4000);
+                    }
+                }
+                const socket = io.connect('http://localhost:5000');
+                if (socket !== undefined) {
+
+                    console.log('Connected socket');
+                    socket.on('output', function (data) {
+                        console.log(data)
+                        if (data.length) {
+                            for (var x = 0; x < data.length; x++) {
+                                var message = document.createElement('div');
+                                message.setAttribute('class', 'chat-message');
+                                message.textContent = data[x].name + ":" + data[x].message;
+                                messages.appendChild(message);
+                                messages.insertBefore(message, messages.firstChild);
+                            }
+                        }
+                    });
+                    socket.on('status', function (data) {
+                        setStatus((typeof data === 'object') ? data.message : data);
+                        if (data.clear) {
+                            textarea.value = '';
+                        }
+                    });
+                    textarea.addEventListener('keydown', function (event) {
+                        if (event.which === 13 && event.shiftKey == false) {
+                            socket.emit('input', {
+                                name: name.value,
+                                message: textarea.value
+                            });
+                            event.preventDefault();
+                        }
+                    })
+                    clear.addEventListener('click', function () {
+                        socket.emit('clear');
+                    });
+                    socket.on('cleared', function () {
+                        message.textContent = '';
+                    });
+
+                }
+            })();
+        </script>
+    </div>
+</body>
+
+</html>
